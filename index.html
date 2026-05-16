@@ -1,30 +1,180 @@
-< !DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>olegalon • portfolio</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body {font-family: system-ui, sans-serif;}
-  #canvas {position:fixed;inset:0;z-index:-1;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>olegalon • portfolio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        #canvas { position: fixed; inset: 0; z-index: -1; }
+        .section { scroll-margin-top: 80px; }
+        .modal { animation: fadeIn 0.3s ease; }
+    </style>
 </head>
-<body class="bg-black text-white">
-<canvas id="canvas"></canvas>
-<nav class="fixed top-0 z-50 w-full bg-black/80 backdrop-blur px-8 py-6 flex justify-between">
-<div class="text-2xl">olegalon</div>
-<div class="space-x-8">
-<a href="#photo" class="hover:opacity-70">Photo</a>
-<a href="#video" class="hover:opacity-70">Video</a>
-<a href="#mographs" class="hover:opacity-70">MoGraphs</a>
-<a href="#other" class="hover:opacity-70">Other</a>
-</div>
-</nav>
-<main class="pt-24">
-<!-- content -->
-</main>
-<script>console.log('Starter loaded');</script>
+<body class="bg-black text-white overflow-x-hidden">
+    <canvas id="canvas"></canvas>
+
+    <!-- Nav -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-screen-2xl mx-auto px-8 py-6 flex justify-between items-center">
+            <div class="text-3xl font-medium tracking-tight">olegalon</div>
+            <div class="flex gap-x-10 text-sm font-medium">
+                <a href="#photo" class="hover:text-gray-400 transition-colors">Photo</a>
+                <a href="#video" class="hover:text-gray-400 transition-colors">Video</a>
+                <a href="#mographs" class="hover:text-gray-400 transition-colors">MoGraphs</a>
+                <a href="#other" class="hover:text-gray-400 transition-colors">Other</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 min-h-screen relative">
+        <!-- Hero / Point Cloud is background -->
+        <div class="min-h-screen flex items-center justify-center relative">
+            <div class="text-center z-10">
+                <h1 class="text-7xl md:text-8xl font-light tracking-tighter mb-4">olegalon</h1>
+                <p class="text-xl text-gray-400">Visual Artist</p>
+            </div>
+        </div>
+
+        <!-- Photo Section -->
+        <section id="photo" class="section py-20 border-t border-white/10">
+            <div class="max-w-screen-2xl mx-auto px-8">
+                <h2 class="text-5xl font-light mb-12">Photo</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="photo-categories"></div>
+            </div>
+        </section>
+
+        <!-- Video, MoGraphs, Other sections to be expanded -->
+        <section id="video" class="section py-20 border-t border-white/10 bg-black">
+            <div class="max-w-screen-2xl mx-auto px-8">
+                <h2 class="text-5xl font-light mb-12">Video</h2>
+                <p class="text-gray-400 mb-8">Demo placeholders — replace with real links</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="video-grid"></div>
+            </div>
+        </section>
+
+        <section id="mographs" class="section py-20 border-t border-white/10">
+            <div class="max-w-screen-2xl mx-auto px-8">
+                <h2 class="text-5xl font-light mb-12">MoGraphs</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="mographs-grid"></div>
+            </div>
+        </section>
+
+        <section id="other" class="section py-20 border-t border-white/10 bg-black">
+            <div class="max-w-screen-2xl mx-auto px-8">
+                <h2 class="text-5xl font-light mb-12">Other Projects</h2>
+                <p class="text-gray-400">Coming soon with your content</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Three.js Script -->
+    <script>
+        // Tailwind script
+        tailwind.config = { content: ['*'] };
+
+        // Three.js Point Cloud
+        let scene, camera, renderer, particles;
+        let mouseX = 0, mouseY = 0;
+        const particleCount = 12000;
+
+        function initThree() {
+            const canvas = document.getElementById('canvas');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Particles
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                const radius = 8 + Math.random() * 4;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                positions[i]     = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.6; // flattened for face-like
+                positions[i + 2] = radius * Math.cos(phi);
+
+                // Slight color variation
+                colors[i] = 0.8 + Math.random() * 0.2;
+                colors[i+1] = 0.8 + Math.random() * 0.2;
+                colors[i+2] = 1.0;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.035,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85,
+                sizeAttenuation: true
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            camera.position.z = 18;
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                particles.rotation.y += 0.0008;
+
+                // Gentle mouse interaction
+                particles.rotation.x = mouseY * 0.0003;
+                particles.rotation.y += mouseX * 0.0002;
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // Mouse move
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX - window.innerWidth / 2;
+            mouseY = e.clientY - window.innerHeight / 2;
+        });
+
+        // Resize
+        window.addEventListener('resize', () => {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+
+        // Initialize everything
+        window.onload = function() {
+            initThree();
+            console.log('%c✅ Portfolio with Three.js point cloud initialized', 'color: #22c55e; font-size: 14px');
+
+            // Demo Photo categories
+            const categories = ['Macro', 'Animals', 'Landscape', 'People', 'Misc'];
+            const photoContainer = document.getElementById('photo-categories');
+            categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl p-8 text-center cursor-pointer transition-all';
+                div.innerHTML = `<h3 class="text-2xl font-light">${cat}</h3><p class="text-sm text-gray-400 mt-2">10 images</p>`;
+                div.onclick = () => alert(`Carousel for ${cat} would open here (Swiper ready)`);
+                photoContainer.appendChild(div);
+            });
+
+            console.log('Portfolio base loaded successfully.');
+        };
+    </script>
 </body>
 </html>
